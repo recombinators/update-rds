@@ -4,11 +4,8 @@ import gzip
 import os
 import psycopg2
 
-# Define AWS credentials, URLs, and bucket name
-AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
-AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
-DATABASE_URL = os.environ.get('DATABASE_URL')
-
+# Constants
+CREDENTIALS = 'credentials'
 REGION = 'us-west-2'
 BUCKET = 'landsat-pds'
 NEW_SCENE_LIST = 'scene_list.gz'
@@ -19,6 +16,14 @@ SEP = ','
 
 
 def main():
+    # Get credentials
+    with open(CREDENTIALS) as cred:
+        creds = cred.readlines()
+
+    # Assign credentials
+    DATABASE_URL = creds[0].rstrip('\n')
+    import ipdb; ipdb.set_trace()
+
     # Make connection to S3
     S3conn = connect_to_region(REGION)
 
