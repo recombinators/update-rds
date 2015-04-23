@@ -1,0 +1,1 @@
+0 12 * * * python /home/landsatawsuser/snapsat_checker/update.py
