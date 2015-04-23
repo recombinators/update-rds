@@ -8,10 +8,17 @@ import psycopg2
 AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
 AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
 REGION = 'us-west-2'
+DB_NAME = os.environ.get('DB_NAME')
+DB_USER = os.environ.get('DB_USER')
+DB_HOST = os.environ.get('DB_HOST')
+DB_PASSWORD = os.environ.get('DB_PASSWORD')
 DATABASE_URL = os.environ.get('DATABASE_URL')
 BUCKET = 'landsat-pds'
 NEW_SCENE_LIST = 'scene_list.gz'
 OLD_SCENE_LIST = 'scene_list'
+DIFF = 'diff.csv'
+TABLE = 'test'
+SEP = ','
 
 
 def main():
@@ -48,9 +55,42 @@ def main():
     print('calc diff, len = {}'.format(len(diff)))
 
     # Write diff to csv file
-    with open('diff.csv', 'wb') as d:
-        d.writelines(diff)
+    with open(DIFF, 'wb') as dif:
+        dif.writelines(diff)
     print('write diff')
+
+    # Write diff to db
+    with open(DIFF, 'rb') as dif:
+        import ipdb; ipdb.set_trace()
+        # Connect to DB
+        conn = psycopg2.connect(DATABASE_URL)
+        print('db conn')
+
+        # conn = psycopg2.connect(
+        #     "dbname='{}' user='{}' host='{}' password='{}'".format(DB_NAME,
+        #                                                            DB_USER,
+        #                                                            DB_HOST,
+        #                                                            DB_PASSWORD))
+
+        # Create DB cursor
+        cur = conn.cursor()
+        print('db cur')
+
+        # Copy diff to DB
+        cur.copy_from(dif, TABLE, sep=SEP)
+        print('copy to db')
+
+        # Commit changes
+        conn.commit()
+        print('commit to db')
+
+        # Close communication with the database
+        cur.close()
+        print('cur close')
+
+        conn.close()
+        print('conn close')
+    print('write to db')
 
     # Close scene list files
     new_scene_list_file_object.close()
@@ -60,6 +100,7 @@ def main():
     # Overwrite scene list file with new data
     with open(OLD_SCENE_LIST, 'wb') as old:
         old.writelines(new_scene_list)
+    print('overwrite file')
 
     # Remove new scene list file
     os.remove(new_scene_list_name_gz)
