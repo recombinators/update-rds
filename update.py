@@ -7,8 +7,9 @@ import psycopg2
 # Define AWS credentials, URLs, and bucket name
 AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
 AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
-REGION = 'us-west-2'
 DATABASE_URL = os.environ.get('DATABASE_URL')
+
+REGION = 'us-west-2'
 BUCKET = 'landsat-pds'
 NEW_SCENE_LIST = 'scene_list.gz'
 OLD_SCENE_LIST = 'scene_list'
