@@ -49,18 +49,18 @@ def main():
     new_scene_list = new_scene_list_file_object.readlines()
 
     # Load old scene list file
-    old_scene_list_file_object = open(OLD_SCENE_LIST, 'rb')
+    old_scene_list_file_object = open(file_path + '/' + OLD_SCENE_LIST, 'rb')
     old_scene_list = old_scene_list_file_object.readlines()
 
     # Calculate diffrence between old and new scene lists
     diff = list(set(new_scene_list) - set(old_scene_list))
 
     # Write diff to csv file
-    with open(DIFF, 'wb') as dif:
+    with open(file_path + '/' + DIFF, 'wb') as dif:
         dif.writelines(diff)
 
     # Write diff to db
-    with open(DIFF, 'rb') as dif:
+    with open(file_path + '/' + DIFF, 'rb') as dif:
         # Connect to DB
         conn = psycopg2.connect(DATABASE_URL)
 
@@ -82,7 +82,7 @@ def main():
     old_scene_list_file_object.close()
 
     # Overwrite scene list file with new data
-    with open(OLD_SCENE_LIST, 'wb') as old:
+    with open(file_path + '/' + OLD_SCENE_LIST, 'wb') as old:
         old.writelines(new_scene_list)
 
     # Remove new scene list file
