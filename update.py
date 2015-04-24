@@ -1,5 +1,5 @@
 from boto.s3 import connect_to_region
-from datetime import date
+from datetime import date, datetime
 import gzip
 import os
 import psycopg2
@@ -94,7 +94,10 @@ def diff_to_db(dif, conn, cur):
 
 def write_to_update_log(cur, conn, datetime, event, state):
     # Command
-    command = 'INSERT INTO path_row_update_log (datetime, event, state) VALUES ({}, {}, {})'.format(datetime, event, state)
+    command = """INSERT INTO path_row_update_log (datetime, event, state)
+                 VALUES ({datetime}, {event}, {state})""".format(datetime=datetime,
+                                                                 event=event,
+                                                                 state=state)
     cur.execute(command)
 
     # Commit changes
@@ -113,19 +116,78 @@ def main():
     # Get new scene list
     try:
         get_new_scene_list(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+        write_to_update_log(cur,
+                            conn,
+                            datetime.utcnow(),
+                            'get new scene list',
+                            5)
+    except:
+        write_to_update_log(cur,
+                            conn,
+                            datetime.utcnow(),
+                            'get new scene list',
+                            10)
 
     # Create diff file
-    dif, new_scene_list = create_diff()
+    try:
+        dif, new_scene_list = create_diff()
+        write_to_update_log(cur,
+                            conn,
+                            datetime.utcnow(),
+                            'create diff',
+                            5)
+    except:
+        write_to_update_log(cur,
+                            conn,
+                            datetime.utcnow(),
+                            'create diff',
+                            10)
 
     # Write diff to db
-    diff_to_db(dif, cur, conn)
+    try:
+        diff_to_db(dif, cur, conn)
+        write_to_update_log(cur,
+                            conn,
+                            datetime.utcnow(),
+                            'write diff to db',
+                            5)
+    except:
+        write_to_update_log(cur,
+                            conn,
+                            datetime.utcnow(),
+                            'write diff to db',
+                            10)
 
     # Overwrite scene list file with new data
-    with open(OLD_SCENE_LIST, 'wb') as old:
-        old.writelines(new_scene_list)
+    try:
+        with open(OLD_SCENE_LIST, 'wb') as old:
+            old.writelines(new_scene_list)
+        write_to_update_log(cur,
+                            conn,
+                            datetime.utcnow(),
+                            'overwrite old scene list with new',
+                            5)
+    except:
+        write_to_update_log(cur,
+                            conn,
+                            datetime.utcnow(),
+                            'overwrite old scene list with new',
+                            10)
 
     # Remove new scene list file
-    os.remove(NEW_SCENE_LIST_NAME_GZ)
+    try:
+        os.remove(NEW_SCENE_LIST_NAME_GZ)
+        write_to_update_log(cur,
+                            conn,
+                            datetime.utcnow(),
+                            'remove old scene list',
+                            5)
+    except:
+        write_to_update_log(cur,
+                            conn,
+                            datetime.utcnow(),
+                            'remove old scene list',
+                            10)
 
     # Close conneciton to db
     close_db_connection(cur, conn)
