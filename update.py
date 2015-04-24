@@ -22,7 +22,6 @@ def main():
 
     # Assign credentials
     DATABASE_URL = creds[0].rstrip('\n')
-    import ipdb; ipdb.set_trace()
 
     # Make connection to S3
     S3conn = connect_to_region(REGION)
