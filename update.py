@@ -149,7 +149,12 @@ def main():
     # Write diff to db
     try:
         diff_to_db(dif, cur, conn)
-        write_to_update_log(cur,conn,datetime.utcnow(),'write diff to db',5,cur.rowcount)
+        write_to_update_log(cur,
+                            conn,
+                            datetime.utcnow(),
+                            'write diff to db',
+                            5,
+                            cur.rowcount)
     except:
         write_to_update_log(cur,
                             conn,
