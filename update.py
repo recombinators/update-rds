@@ -92,7 +92,14 @@ def diff_to_db(dif, conn, cur):
         conn.commit()
 
 
-def write_to_update_log():
+def write_to_update_log(cur, conn, datetime, event, state):
+    # Command
+    command = 'INSERT INTO path_row_update_log (datetime, event, state) VALUES ({}, {}, {})'.format(datetime, event, state)
+    cur.execute(command)
+
+    # Commit changes
+    conn.commit()
+
     pass
 
 
@@ -100,11 +107,12 @@ def main():
     # Get credentials
     AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, DATABASE_URL = get_credentials()
 
-    # COnnec to db
+    # Connect to db
     cur, conn = connect_to_db(DATABASE_URL)
 
     # Get new scene list
-    get_new_scene_list(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+    try:
+        get_new_scene_list(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
 
     # Create diff file
     dif, new_scene_list = create_diff()
