@@ -17,7 +17,7 @@ SEP = ','
 
 def main():
     # Get credentials
-    with open(CREDENTIALS) as cred:
+    with open(CREDENTIALS, 'rb') as cred:
         creds = cred.readlines()
 
     # Assign credentials
