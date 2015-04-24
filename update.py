@@ -67,23 +67,29 @@ def create_diff():
     return dif, new_scene_list
 
 
-def diff_to_db(DATABASE_URL, dif):
+def connect_to_db(DATABASE_URL):
+    # Connect to DB
+    conn = psycopg2.connect(DATABASE_URL)
+
+    # Create DB cursor
+    cur = conn.cursor()
+
+    return cur, conn
+
+
+def close_db_connection(cur, conn):
+    # Close communication with the database
+    cur.close()
+    conn.close()
+
+
+def diff_to_db(dif, conn, cur):
     with open(DIFF, 'rb') as dif:
-        # Connect to DB
-        conn = psycopg2.connect(DATABASE_URL)
-
-        # Create DB cursor
-        cur = conn.cursor()
-
         # Copy diff to DB
         cur.copy_from(dif, TABLE, sep=SEP)
 
         # Commit changes
         conn.commit()
-
-        # Close communication with the database
-        cur.close()
-        conn.close()
 
 
 def write_to_update_log():
@@ -94,6 +100,9 @@ def main():
     # Get credentials
     AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, DATABASE_URL = get_credentials()
 
+    # COnnec to db
+    cur, conn = connect_to_db(DATABASE_URL)
+
     # Get new scene list
     get_new_scene_list(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
 
@@ -101,7 +110,7 @@ def main():
     dif, new_scene_list = create_diff()
 
     # Write diff to db
-    diff_to_db(DATABASE_URL, dif)
+    diff_to_db(dif, cur, conn)
 
     # Overwrite scene list file with new data
     with open(OLD_SCENE_LIST, 'wb') as old:
@@ -109,6 +118,9 @@ def main():
 
     # Remove new scene list file
     os.remove(NEW_SCENE_LIST_NAME_GZ)
+
+    # Close conneciton to db
+    close_db_connection(cur, conn)
 
 if __name__ == '__main__':
     main()
