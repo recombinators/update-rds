@@ -15,11 +15,7 @@ TABLE = 'path_row'
 SEP = ','
 
 
-def diff_to_db(DATABASE_URL):
-    pass
-
-
-def write_to_update_log():
+def diff_to_db(DATABASE_URL, dif):
     # Connect to DB
     conn = psycopg2.connect(DATABASE_URL)
 
@@ -35,6 +31,10 @@ def write_to_update_log():
     # Close communication with the database
     cur.close()
     conn.close()
+
+
+def write_to_update_log():
+    pass
 
 
 def main():
@@ -66,16 +66,17 @@ def main():
     new_scene_list_name_gz = '{}.gz'.format(new_scene_list_name)
     scene_list_key.get_contents_to_filename(new_scene_list_name_gz)
 
-    # Load new scene list file
-    new_scene_list_file_object = gzip.open(new_scene_list_name_gz)
-    new_scene_list = new_scene_list_file_object.readlines()
+    with gzip.open(new_scene_list_name_gz) as new_scene_list_file_object, \
+            open(file_path + '/' + OLD_SCENE_LIST, 'rb') as old_scene_list_file_object:
 
-    # Load old scene list file
-    old_scene_list_file_object = open(file_path + '/' + OLD_SCENE_LIST, 'rb')
-    old_scene_list = old_scene_list_file_object.readlines()
+        # Load new scene list file
+        new_scene_list = new_scene_list_file_object.readlines()
 
-    # Calculate diffrence between old and new scene lists
-    diff = list(set(new_scene_list) - set(old_scene_list))
+        # Load old scene list file
+        old_scene_list = old_scene_list_file_object.readlines()
+
+        # Calculate diffrence between old and new scene lists
+        diff = list(set(new_scene_list) - set(old_scene_list))
 
     # Write diff to csv file
     with open(file_path + '/' + DIFF, 'wb') as dif:
@@ -83,21 +84,7 @@ def main():
 
     # Write diff to db
     with open(file_path + '/' + DIFF, 'rb') as dif:
-        # Connect to DB
-        conn = psycopg2.connect(DATABASE_URL)
-
-        # Create DB cursor
-        cur = conn.cursor()
-
-        # Copy diff to DB
-        cur.copy_from(dif, TABLE, sep=SEP)
-
-        # Commit changes
-        conn.commit()
-
-        # Close communication with the database
-        cur.close()
-        conn.close()
+        diff_to_db(DATABASE_URL, dif)
 
     # Close scene list files
     new_scene_list_file_object.close()
