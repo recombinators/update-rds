@@ -15,6 +15,28 @@ TABLE = 'path_row'
 SEP = ','
 
 
+def diff_to_db(DATABASE_URL):
+    pass
+
+
+def write_to_update_log():
+    # Connect to DB
+    conn = psycopg2.connect(DATABASE_URL)
+
+    # Create DB cursor
+    cur = conn.cursor()
+
+    # Copy diff to DB
+    cur.copy_from(dif, TABLE, sep=SEP)
+
+    # Commit changes
+    conn.commit()
+
+    # Close communication with the database
+    cur.close()
+    conn.close()
+
+
 def main():
     # Get current directory
     file_path = os.path.dirname(os.path.realpath(__file__))
