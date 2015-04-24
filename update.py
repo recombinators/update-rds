@@ -14,7 +14,7 @@ OLD_SCENE_LIST = FILE_PATH + '/' + 'scene_list'
 NEW_SCENE_LIST_NAME = 'scene_list_{}'.format(date.today().strftime('%Y%m%d'))
 NEW_SCENE_LIST_NAME_GZ = '{}.gz'.format(NEW_SCENE_LIST_NAME)
 DIFF = FILE_PATH + '/' + 'diff.csv'
-TABLE = 'path_row'
+TABLE = 'test'
 SEP = ','
 
 
@@ -64,7 +64,7 @@ def create_diff():
     with open(DIFF, 'wb') as dif:
         dif.writelines(diff)
 
-    return dif, new_scene_list
+    return dif, new_scene_list, diff
 
 
 def connect_to_db(DATABASE_URL):
@@ -83,7 +83,7 @@ def close_db_connection(cur, conn):
     conn.close()
 
 
-def diff_to_db(dif, conn, cur):
+def diff_to_db(dif, cur, conn):
     with open(DIFF, 'rb') as dif:
         # Copy diff to DB
         cur.copy_from(dif, TABLE, sep=SEP)
@@ -92,12 +92,14 @@ def diff_to_db(dif, conn, cur):
         conn.commit()
 
 
-def write_to_update_log(cur, conn, datetime, event, state):
+def write_to_update_log(cur, conn, datetime, event, state, additions=None):
     # Command
-    command = """INSERT INTO path_row_update_log (datetime, event, state)
-                 VALUES ({datetime}, {event}, {state})""".format(datetime=datetime,
-                                                                 event=event,
-                                                                 state=state)
+    command = """INSERT INTO path_row_update_log (datetime, event, state, additions)
+                 VALUES ('{datetime}', '{event}', '{state}', '{additions}')
+                 """.format(datetime=datetime,
+                            event=event,
+                            state=state,
+                            additions=additions)
     cur.execute(command)
 
     # Commit changes
@@ -130,12 +132,13 @@ def main():
 
     # Create diff file
     try:
-        dif, new_scene_list = create_diff()
+        dif, new_scene_list, diff = create_diff()
         write_to_update_log(cur,
                             conn,
                             datetime.utcnow(),
                             'create diff',
-                            5)
+                            5,
+                            len(diff))
     except:
         write_to_update_log(cur,
                             conn,
@@ -146,11 +149,7 @@ def main():
     # Write diff to db
     try:
         diff_to_db(dif, cur, conn)
-        write_to_update_log(cur,
-                            conn,
-                            datetime.utcnow(),
-                            'write diff to db',
-                            5)
+        write_to_update_log(cur,conn,datetime.utcnow(),'write diff to db',5,cur.rowcount)
     except:
         write_to_update_log(cur,
                             conn,
