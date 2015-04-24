@@ -1,1 +1,1 @@
-0 12 * * * /home/landsatawsuser/snapsat_checker/python /home/landsatawsuser/snapsat_checker/update.py
+* * * * * /home/landsatawsuser/snapsat_checker/python /home/landsatawsuser/snapsat_checker/update.py
