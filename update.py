@@ -17,10 +17,10 @@ SEP = ','
 
 def main():
     # Get current directory
-    CWD = os.getcwd()
+    file_path = os.path.dirname(os.path.realpath(__file__))
 
     # Get credentials
-    with open(CWD + '/' + CREDENTIALS, 'rb') as cred:
+    with open(file_path + '/' + CREDENTIALS, 'rb') as cred:
         creds = cred.readlines()
 
     # Assign credentials
