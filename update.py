@@ -16,8 +16,11 @@ SEP = ','
 
 
 def main():
+    # Get current directory
+    CWD = os.getcwd
+
     # Get credentials
-    with open(CREDENTIALS, 'rb') as cred:
+    with open(CWD + '/' + CREDENTIALS, 'rb') as cred:
         creds = cred.readlines()
 
     # Assign credentials
