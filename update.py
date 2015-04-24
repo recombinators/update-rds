@@ -86,10 +86,6 @@ def main():
     with open(file_path + '/' + DIFF, 'rb') as dif:
         diff_to_db(DATABASE_URL, dif)
 
-    # Close scene list files
-    new_scene_list_file_object.close()
-    old_scene_list_file_object.close()
-
     # Overwrite scene list file with new data
     with open(file_path + '/' + OLD_SCENE_LIST, 'wb') as old:
         old.writelines(new_scene_list)
