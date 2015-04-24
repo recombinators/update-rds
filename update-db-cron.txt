@@ -1,1 +1,1 @@
-* * * * * python /home/landsatawsuser/snapsat_db_updater/update.py
+0 12 * * * python /home/landsatawsuser/snapsat_db_updater/update.py
