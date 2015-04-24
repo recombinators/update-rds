@@ -14,7 +14,7 @@ OLD_SCENE_LIST = FILE_PATH + '/' + 'scene_list'
 NEW_SCENE_LIST_NAME = 'scene_list_{}'.format(date.today().strftime('%Y%m%d'))
 NEW_SCENE_LIST_NAME_GZ = '{}.gz'.format(NEW_SCENE_LIST_NAME)
 DIFF = FILE_PATH + '/' + 'diff.csv'
-TABLE = 'path_row'
+TABLE = 'test'
 SEP = ','
 
 
@@ -92,14 +92,23 @@ def diff_to_db(dif, cur, conn):
         conn.commit()
 
 
-def write_to_update_log(cur, conn, datetime, event, state, additions=None):
+def check_path_row_size(cur, conn):
     # Command
-    command = """INSERT INTO path_row_update_log (datetime, event, state, additions)
-                 VALUES ('{datetime}', '{event}', '{state}', '{additions}')
+    command = "SELECT COUNT (*) FROM {table}".format(table=TABLE)
+    cur.execute(command)
+    size_tuple = cur.fetchone()
+    import ipdb; ipdb.set_trace()
+    return size_tuple[0]
+
+
+def write_to_update_log(cur, conn, datetime, event, state, quantity=None):
+    # Command
+    command = """INSERT INTO path_row_update_log (datetime, event, state, quantity)
+                 VALUES ('{datetime}', '{event}', '{state}', '{quantity}')
                  """.format(datetime=datetime,
                             event=event,
                             state=state,
-                            additions=additions)
+                            quantity=quantity)
     cur.execute(command)
 
     # Commit changes
@@ -114,6 +123,15 @@ def main():
 
     # Connect to db
     cur, conn = connect_to_db(DATABASE_URL)
+
+    # Check size of path_row table
+    size_old = check_path_row_size(cur, conn)
+    write_to_update_log(cur,
+                        conn,
+                        datetime.utcnow(),
+                        'pre update size',
+                        5,
+                        size_old)
 
     # Get new scene list
     try:
@@ -192,6 +210,24 @@ def main():
                             datetime.utcnow(),
                             'remove old scene list',
                             10)
+
+    # Check size of path_row table
+    size_new = check_path_row_size(cur, conn)
+    write_to_update_log(cur,
+                        conn,
+                        datetime.utcnow(),
+                        'post update size',
+                        5,
+                        size_new)
+
+    # Check difference of size of path_row table
+    size_new = check_path_row_size(cur, conn)
+    write_to_update_log(cur,
+                        conn,
+                        datetime.utcnow(),
+                        'actual diff size',
+                        5,
+                        size_new)
 
     # Close conneciton to db
     close_db_connection(cur, conn)
