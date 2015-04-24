@@ -11,7 +11,7 @@ BUCKET = 'landsat-pds'
 NEW_SCENE_LIST = 'scene_list.gz'
 OLD_SCENE_LIST = 'scene_list'
 DIFF = 'diff.csv'
-TABLE = 'test'
+TABLE = 'path_row'
 SEP = ','
 
 
