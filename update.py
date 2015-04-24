@@ -24,10 +24,14 @@ def main():
         creds = cred.readlines()
 
     # Assign credentials
-    DATABASE_URL = creds[0].rstrip('\n')
+    AWS_ACCESS_KEY_ID = creds[0].rstrip('\n')
+    AWS_SECRET_ACCESS_KEY = creds[1].rstrip('\n')
+    DATABASE_URL = creds[2].rstrip('\n')
 
     # Make connection to S3
-    S3conn = connect_to_region(REGION)
+    S3conn = connect_to_region(REGION,
+                               aws_access_key_id=AWS_ACCESS_KEY_ID,
+                               aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
 
     # Get landsat-pds bucket
     landsat_pds_bucket = S3conn.get_bucket(BUCKET)
