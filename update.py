@@ -14,7 +14,7 @@ OLD_SCENE_LIST = FILE_PATH + '/' + 'scene_list'
 NEW_SCENE_LIST_NAME = 'scene_list_{}'.format(date.today().strftime('%Y%m%d'))
 NEW_SCENE_LIST_NAME_GZ = '{}.gz'.format(NEW_SCENE_LIST_NAME)
 DIFF = FILE_PATH + '/' + 'diff.csv'
-TABLE = 'path_row'
+TABLE = 'test'
 SEP = ','
 
 
@@ -100,11 +100,11 @@ def check_path_row_size(cur, conn):
     return size_tuple[0]
 
 
-def write_to_update_log(cur, conn, datetime, event, state, quantity=None):
+def write_to_update_log(cur, conn, date_time, event, state, quantity=None):
     # Command
-    command = """INSERT INTO path_row_update_log (datetime, event, state, quantity)
-                 VALUES ('{datetime}', '{event}', '{state}', '{quantity}')
-                 """.format(datetime=datetime,
+    command = """INSERT INTO path_row_update_log (date_time, event, state, quantity)
+                 VALUES ('{date_time}', '{event}', '{state}', '{quantity}')
+                 """.format(date_time=date_time,
                             event=event,
                             state=state,
                             quantity=quantity)
@@ -113,123 +113,123 @@ def write_to_update_log(cur, conn, datetime, event, state, quantity=None):
     # Commit changes
     conn.commit()
 
-    pass
-
 
 def main():
-    # Get credentials
-    AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, DATABASE_URL = get_credentials()
+    pass
+    # import ipdb; ipdb.set_trace()
+    # # Get credentials
+    # AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, DATABASE_URL = get_credentials()
 
-    # Connect to db
-    cur, conn = connect_to_db(DATABASE_URL)
+    # # Connect to db
+    # cur, conn = connect_to_db(DATABASE_URL)
 
-    # Check size of path_row table
-    size_old = check_path_row_size(cur, conn)
-    write_to_update_log(cur,
-                        conn,
-                        datetime.utcnow(),
-                        'pre update size',
-                        5,
-                        size_old)
+    # # Check size of path_row table
+    # size_old = check_path_row_size(cur, conn)
+    # write_to_update_log(cur,
+    #                     conn,
+    #                     datetime.utcnow(),
+    #                     'pre update size',
+    #                     5,
+    #                     size_old)
 
-    # Get new scene list
-    try:
-        get_new_scene_list(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
-        write_to_update_log(cur,
-                            conn,
-                            datetime.utcnow(),
-                            'get new scene list',
-                            5)
-    except:
-        write_to_update_log(cur,
-                            conn,
-                            datetime.utcnow(),
-                            'get new scene list',
-                            10)
+    # # Get new scene list
+    # try:
+    #     get_new_scene_list(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+    #     write_to_update_log(cur,
+    #                         conn,
+    #                         datetime.utcnow(),
+    #                         'get new scene list',
+    #                         5)
+    # except:
+    #     write_to_update_log(cur,
+    #                         conn,
+    #                         datetime.utcnow(),
+    #                         'get new scene list',
+    #                         10)
 
-    # Create diff file
-    try:
-        dif, new_scene_list, diff = create_diff()
-        write_to_update_log(cur,
-                            conn,
-                            datetime.utcnow(),
-                            'create diff',
-                            5,
-                            len(diff))
-    except:
-        write_to_update_log(cur,
-                            conn,
-                            datetime.utcnow(),
-                            'create diff',
-                            10)
+    # # Create diff file
+    # try:
+    #     dif, new_scene_list, diff = create_diff()
+    #     write_to_update_log(cur,
+    #                         conn,
+    #                         datetime.utcnow(),
+    #                         'create diff',
+    #                         5,
+    #                         len(diff))
+    # except:
+    #     write_to_update_log(cur,
+    #                         conn,
+    #                         datetime.utcnow(),
+    #                         'create diff',
+    #                         10)
 
-    # Write diff to db
-    try:
-        diff_to_db(dif, cur, conn)
-        write_to_update_log(cur,
-                            conn,
-                            datetime.utcnow(),
-                            'write diff to db',
-                            5,
-                            cur.rowcount)
-    except:
-        write_to_update_log(cur,
-                            conn,
-                            datetime.utcnow(),
-                            'write diff to db',
-                            10)
+    # # Write diff to db
+    # try:
+    #     diff_to_db(dif, cur, conn)
+    #     write_to_update_log(cur,
+    #                         conn,
+    #                         datetime.utcnow(),
+    #                         'write diff to db',
+    #                         5,
+    #                         cur.rowcount)
+    # except:
+    #     write_to_update_log(cur,
+    #                         conn,
+    #                         datetime.utcnow(),
+    #                         'write diff to db',
+    #                         10)
 
-    # Overwrite scene list file with new data
-    try:
-        with open(OLD_SCENE_LIST, 'wb') as old:
-            old.writelines(new_scene_list)
-        write_to_update_log(cur,
-                            conn,
-                            datetime.utcnow(),
-                            'overwrite old scene list with new',
-                            5)
-    except:
-        write_to_update_log(cur,
-                            conn,
-                            datetime.utcnow(),
-                            'overwrite old scene list with new',
-                            10)
+    # # Overwrite scene list file with new data
+    # try:
+    #     with open(OLD_SCENE_LIST, 'wb') as old:
+    #         old.writelines(new_scene_list)
+    #     write_to_update_log(cur,
+    #                         conn,
+    #                         datetime.utcnow(),
+    #                         'overwrite old scene list with new',
+    #                         5)
+    # except:
+    #     write_to_update_log(cur,
+    #                         conn,
+    #                         datetime.utcnow(),
+    #                         'overwrite old scene list with new',
+    #                         10)
 
-    # Remove new scene list file
-    try:
-        os.remove(NEW_SCENE_LIST_NAME_GZ)
-        write_to_update_log(cur,
-                            conn,
-                            datetime.utcnow(),
-                            'remove old scene list',
-                            5)
-    except:
-        write_to_update_log(cur,
-                            conn,
-                            datetime.utcnow(),
-                            'remove old scene list',
-                            10)
+    # # Remove new scene list file
+    # try:
+    #     os.remove(NEW_SCENE_LIST_NAME_GZ)
+    #     write_to_update_log(cur,
+    #                         conn,
+    #                         datetime.utcnow(),
+    #                         'remove old scene list',
+    #                         5)
+    # except:
+    #     write_to_update_log(cur,
+    #                         conn,
+    #                         datetime.utcnow(),
+    #                         'remove old scene list',
+    #                         10)
 
-    # Check size of path_row table
-    size_new = check_path_row_size(cur, conn)
-    write_to_update_log(cur,
-                        conn,
-                        datetime.utcnow(),
-                        'post update size',
-                        5,
-                        size_new)
+    # # Check size of path_row table
+    # size_new = check_path_row_size(cur, conn)
+    # write_to_update_log(cur,
+    #                     conn,
+    #                     datetime.utcnow(),
+    #                     'post update size',
+    #                     5,
+    #                     size_new)
 
-    # Check difference of size of path_row table
-    size_new = check_path_row_size(cur, conn)
-    write_to_update_log(cur,
-                        conn,
-                        datetime.utcnow(),
-                        'actual diff size',
-                        5,
-                        size_new)
+    # # Check difference of size of path_row table
+    # size_new = check_path_row_size(cur, conn)
+    # write_to_update_log(cur,
+    #                     conn,
+    #                     datetime.utcnow(),
+    #                     'actual diff size',
+    #                     5,
+    #                     size_new)
 
-    # Close conneciton to db
-    close_db_connection(cur, conn)
+    # # Close conneciton to db
+    # close_db_connection(cur, conn)
 
 if __name__ == '__main__':
     main()
