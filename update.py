@@ -97,7 +97,6 @@ def check_path_row_size(cur, conn):
     command = "SELECT COUNT (*) FROM {table}".format(table=TABLE)
     cur.execute(command)
     size_tuple = cur.fetchone()
-    import ipdb; ipdb.set_trace()
     return size_tuple[0]
 
 
