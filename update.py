@@ -218,13 +218,13 @@ def main():
                         size_new)
 
     # Check difference of size of path_row table
-    size_new = check_path_row_size(cur, conn)
+    size_diff = size_new - size_old
     write_to_update_log(cur,
                         conn,
                         datetime.utcnow(),
                         'actual diff size',
                         5,
-                        size_new)
+                        size_diff)
 
     # Close conneciton to db
     close_db_connection(cur, conn)
