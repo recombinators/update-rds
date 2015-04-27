@@ -114,7 +114,7 @@ def update_path_row(cur, conn):
 
 
 def delete_path_row_temp(cur, conn):
-    command = """DELETE FROM path_row_temp"""
+    command = """DELETE FROM {temp_table}""".format(temp_table=TEMP_TABLE)
     cur.execute(command)
 
     # Commit changes
