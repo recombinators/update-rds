@@ -102,10 +102,11 @@ def update_path_row_temp(cur, conn):
 
 
 def update_path_row(cur, conn):
-    command = """INSERT INTO test SELECT * FROM test2
+    command = """INSERT INTO {table} SELECT * FROM {temp_table}
                  WHERE
-                 not exists(SELECT * FROM test
-                            WHERE acquisitiondate=test2.acquisitiondate)"""
+                 not exists(SELECT * FROM {table}
+                            WHERE acquisitiondate={temp_table}.acquisitiondate)
+                """.format(table=TABLE, temp_table=TEMP_TABLE)
     cur.execute(command)
 
     # Commit changes
