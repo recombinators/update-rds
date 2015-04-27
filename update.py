@@ -15,7 +15,7 @@ NEW_SCENE_LIST_NAME = 'scene_list_{}'.format(date.today().strftime('%Y%m%d'))
 NEW_SCENE_LIST_NAME_GZ = '{}.gz'.format(NEW_SCENE_LIST_NAME)
 DIFF = FILE_PATH + '/' + 'diff.csv'
 TEMP_TABLE = 'path_row_temp'
-TABLE = 'test'
+TABLE = 'path_row'
 SEP = ','
 
 
