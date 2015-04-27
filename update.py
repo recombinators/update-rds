@@ -14,10 +14,37 @@ OLD_SCENE_LIST = FILE_PATH + '/' + 'scene_list'
 NEW_SCENE_LIST_NAME = 'scene_list_{}'.format(date.today().strftime('%Y%m%d'))
 NEW_SCENE_LIST_NAME_GZ = '{}.gz'.format(NEW_SCENE_LIST_NAME)
 DIFF = FILE_PATH + '/' + 'diff.csv'
-TABLE = 'path_row'
+TEMP_TABLE = 'path_row_temp'
+TABLE = 'test'
 SEP = ','
 
 
+# def create_diff():
+#     with gzip.open(NEW_SCENE_LIST_NAME_GZ) as new_scene_list_file_object, \
+#             open(OLD_SCENE_LIST, 'rb') as old_scene_list_file_object:
+
+#         # Load new scene list file
+#         new_scene_list = new_scene_list_file_object.readlines()
+
+#         # Load old scene list file
+#         old_scene_list = old_scene_list_file_object.readlines()
+
+#         # Calculate diffrence between old and new scene lists
+#         diff = list(set(new_scene_list) - set(old_scene_list))
+
+#     # Write diff to csv file
+#     with open(DIFF, 'wb') as dif:
+#         dif.writelines(diff)
+
+#     return dif, new_scene_list, diff
+
+# def diff_to_db(dif, cur, conn):
+#     with open(DIFF, 'rb') as dif:
+#         # Copy diff to DB
+#         cur.copy_from(dif, TABLE, sep=SEP)
+
+#         # Commit changes
+#         conn.commit()
 def get_credentials():
     # Get credentials
     with open(CREDENTIALS, 'rb') as cred:
@@ -47,26 +74,6 @@ def get_new_scene_list(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY):
     scene_list_key.get_contents_to_filename(NEW_SCENE_LIST_NAME_GZ)
 
 
-def create_diff():
-    with gzip.open(NEW_SCENE_LIST_NAME_GZ) as new_scene_list_file_object, \
-            open(OLD_SCENE_LIST, 'rb') as old_scene_list_file_object:
-
-        # Load new scene list file
-        new_scene_list = new_scene_list_file_object.readlines()
-
-        # Load old scene list file
-        old_scene_list = old_scene_list_file_object.readlines()
-
-        # Calculate diffrence between old and new scene lists
-        diff = list(set(new_scene_list) - set(old_scene_list))
-
-    # Write diff to csv file
-    with open(DIFF, 'wb') as dif:
-        dif.writelines(diff)
-
-    return dif, new_scene_list, diff
-
-
 def connect_to_db(DATABASE_URL):
     # Connect to DB
     conn = psycopg2.connect(DATABASE_URL)
@@ -77,27 +84,40 @@ def connect_to_db(DATABASE_URL):
     return cur, conn
 
 
-def close_db_connection(cur, conn):
-    # Close communication with the database
-    cur.close()
-    conn.close()
-
-
-def diff_to_db(dif, cur, conn):
-    with open(DIFF, 'rb') as dif:
-        # Copy diff to DB
-        cur.copy_from(dif, TABLE, sep=SEP)
-
-        # Commit changes
-        conn.commit()
-
-
 def check_path_row_size(cur, conn):
     # Command
     command = "SELECT COUNT (*) FROM {table}".format(table=TABLE)
     cur.execute(command)
     size_tuple = cur.fetchone()
     return size_tuple[0]
+
+
+def update_path_row_temp(cur, conn):
+    with gzip.open(NEW_SCENE_LIST_NAME_GZ) as new_scene_list_file_object:
+        # Copy new scene list to temp table in DB
+        cur.copy_from(new_scene_list_file_object, TABLE, sep=SEP)
+
+        # Commit changes
+        conn.commit()
+
+
+def update_path_row(cur, conn):
+    command = """INSERT INTO test SELECT * FROM test2
+                 WHERE
+                 not exists(SELECT * FROM test
+                            WHERE acquisitiondate=test2.acquisitiondate)"""
+    cur.execute(command)
+
+    # Commit changes
+    conn.commit()
+
+
+def delete_path_row_temp(cur, conn):
+    command = """DELETE FROM path_row_temp"""
+    cur.execute(command)
+
+    # Commit changes
+    conn.commit()
 
 
 def write_to_update_log(cur, conn, date_time, event, state, quantity=None):
@@ -112,6 +132,12 @@ def write_to_update_log(cur, conn, date_time, event, state, quantity=None):
 
     # Commit changes
     conn.commit()
+
+
+def close_db_connection(cur, conn):
+    # Close communication with the database
+    cur.close()
+    conn.close()
 
 
 def main():
@@ -145,68 +171,83 @@ def main():
                             'get new scene list',
                             10)
 
-    # Create diff file
+    # Delete path_row_temp
     try:
-        dif, new_scene_list, diff = create_diff()
+        delete_path_row_temp(cur, conn)
         write_to_update_log(cur,
                             conn,
                             datetime.utcnow(),
-                            'create diff',
-                            5,
-                            len(diff))
+                            'clean path_row_temp',
+                            5)
     except:
         write_to_update_log(cur,
                             conn,
                             datetime.utcnow(),
-                            'create diff',
+                            'clean path_row_temp',
                             10)
 
-    # Write diff to db
+    # Push new scene list to temp
     try:
-        diff_to_db(dif, cur, conn)
+        update_path_row_temp(cur, conn)
         write_to_update_log(cur,
                             conn,
                             datetime.utcnow(),
-                            'write diff to db',
+                            'push new scene list to temp',
                             5,
                             cur.rowcount)
     except:
         write_to_update_log(cur,
                             conn,
                             datetime.utcnow(),
-                            'write diff to db',
+                            'push new scene list to temp',
                             10)
 
-    # Overwrite scene list file with new data
+    # Update path_row from path_row_temp
     try:
-        with open(OLD_SCENE_LIST, 'wb') as old:
-            old.writelines(new_scene_list)
+        update_path_row(cur, conn)
         write_to_update_log(cur,
                             conn,
                             datetime.utcnow(),
-                            'overwrite old scene list with new',
-                            5)
+                            'update path_row from path_row_temp',
+                            5,
+                            cur.rowcount)
     except:
         write_to_update_log(cur,
                             conn,
                             datetime.utcnow(),
-                            'overwrite old scene list with new',
+                            'update path_row from path_row_temp',
                             10)
 
-    # Remove new scene list file
-    try:
-        os.remove(NEW_SCENE_LIST_NAME_GZ)
-        write_to_update_log(cur,
-                            conn,
-                            datetime.utcnow(),
-                            'remove old scene list',
-                            5)
-    except:
-        write_to_update_log(cur,
-                            conn,
-                            datetime.utcnow(),
-                            'remove old scene list',
-                            10)
+    # # Overwrite scene list file with new data
+    # try:
+    #     with open(OLD_SCENE_LIST, 'wb') as old:
+    #         old.writelines(new_scene_list)
+    #     write_to_update_log(cur,
+    #                         conn,
+    #                         datetime.utcnow(),
+    #                         'overwrite old scene list with new',
+    #                         5)
+    # except:
+    #     write_to_update_log(cur,
+    #                         conn,
+    #                         datetime.utcnow(),
+    #                         'overwrite old scene list with new',
+    #                         10)
+
+    # # Remove new scene list file
+    # try:
+    #     os.remove(NEW_SCENE_LIST_NAME_GZ)
+    #     write_to_update_log(cur,
+    #                         conn,
+    #                         datetime.utcnow(),
+    #                         'remove old scene list',
+    #                         5)
+    # except:
+    #     write_to_update_log(cur,
+    #                         conn,
+    #                         datetime.utcnow(),
+    #                         'remove old scene list',
+    #                         10)
 
     # Check size of path_row table
     size_new = check_path_row_size(cur, conn)
