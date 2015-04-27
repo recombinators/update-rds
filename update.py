@@ -95,7 +95,7 @@ def check_path_row_size(cur, conn):
 def update_path_row_temp(cur, conn):
     with gzip.open(NEW_SCENE_LIST_NAME_GZ) as new_scene_list_file_object:
         # Copy new scene list to temp table in DB
-        cur.copy_from(new_scene_list_file_object, TABLE, sep=SEP)
+        cur.copy_from(new_scene_list_file_object, TEMP_TABLE, sep=SEP)
 
         # Commit changes
         conn.commit()
