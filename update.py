@@ -87,7 +87,7 @@ def update_path_row(cur, conn):
     command = """INSERT INTO {table} SELECT * FROM {temp_table}
                  WHERE
                  not exists(SELECT * FROM {table}
-                            WHERE acquisitiondate={temp_table}.acquisitiondate)
+                            WHERE entityid={temp_table}.entityid)
                 """.format(table=TABLE, temp_table=TEMP_TABLE)
     cur.execute(command)
 
