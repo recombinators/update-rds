@@ -84,7 +84,7 @@ def update_path_row_temp(cur, conn):
 
 
 def update_path_row(cur, conn):
-    command = """INSERT INTO {table} SELECT * FROM {temp_table}
+    command = """INSERT INTO {table} SELECT DISTINCT * FROM {temp_table}
                  WHERE
                  not exists(SELECT * FROM {table}
                             WHERE entityid={temp_table}.entityid)
