@@ -124,6 +124,7 @@ def close_db_connection(cur, conn):
 
 
 def main():
+    import pdb; pdb.set_trace()
     # Get credentials
     AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, DATABASE_URL = get_credentials()
 
