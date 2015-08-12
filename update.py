@@ -1,6 +1,7 @@
 from boto.s3 import connect_to_region
 from datetime import date, datetime
 import gzip
+import logging
 import os
 import psycopg2
 
