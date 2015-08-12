@@ -18,7 +18,7 @@ DIFF = FILE_PATH + '/' + 'diff.csv'
 TEMP_TABLE = 'path_row_temp'
 TABLE = 'path_row'
 SEP = ','
-
+LOG = logging.getLogger('updater')
 
 def get_credentials():
     # Get credentials
