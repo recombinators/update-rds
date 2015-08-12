@@ -1,6 +1,7 @@
 from boto.s3 import connect_to_region
 from datetime import date, datetime
 import gzip
+import logging
 import os
 import psycopg2
 
@@ -17,6 +18,7 @@ DIFF = FILE_PATH + '/' + 'diff.csv'
 TEMP_TABLE = 'path_row_temp'
 TABLE = 'path_row'
 SEP = ','
+LOG = logging.getLogger('updater')
 
 
 def get_credentials():
@@ -103,14 +105,15 @@ def delete_path_row_temp(cur, conn):
     conn.commit()
 
 
-def write_to_update_log(cur, conn, date_time, event, state, quantity=None):
+def write_to_update_log(cur, conn, date_time, event, state,
+                        quantity=None, exception=None):
     # Command
-    command = """INSERT INTO path_row_update_log (datetime, event, state, quantity)
-                 VALUES ('{date_time}', '{event}', '{state}', '{quantity}')
-                 """.format(date_time=date_time,
-                            event=event,
-                            state=state,
-                            quantity=quantity)
+    command = ("INSERT INTO path_row_update_log "
+               "(datetime, event, state, quantity, exception)\n"
+               "VALUES ('{date_time}', '{event}', '{state}', "
+               "'{quantity}', '{exception}')"
+               ).format(date_time=date_time, event=event,
+                        state=state, quantity=quantity, exception=exception)
     cur.execute(command)
 
     # Commit changes
@@ -139,6 +142,17 @@ def main():
                         5,
                         size_old)
 
+    # Temporary test of exception logger
+    try:
+        1 / 0  # This is always going to fail very hard.
+    except Exception:
+        write_to_update_log(cur,
+                            conn,
+                            datetime.utcnow(),
+                            'Divide by Zero Fail Test',
+                            10,
+                            exception=LOG.exception("DIVIDE BY ZERO FAIL!"))
+
     # Get new scene list
     try:
         get_new_scene_list(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
@@ -147,12 +161,13 @@ def main():
                             datetime.utcnow(),
                             'get new scene list',
                             5)
-    except:
+    except Exception:
         write_to_update_log(cur,
                             conn,
                             datetime.utcnow(),
                             'get new scene list',
-                            10)
+                            10,
+                            exception=LOG.exception("GET NEW SCENE FAILED"))
 
     # Delete path_row_temp
     try:
@@ -162,12 +177,13 @@ def main():
                             datetime.utcnow(),
                             'clean path_row_temp',
                             5)
-    except:
+    except Exception:
         write_to_update_log(cur,
                             conn,
                             datetime.utcnow(),
                             'clean path_row_temp',
-                            10)
+                            10,
+                            exception=LOG.exception("DELETE FAILED"))
 
     # Push new scene list to temp
     try:
@@ -178,12 +194,13 @@ def main():
                             'push new scene list to temp',
                             5,
                             cur.rowcount)
-    except:
+    except Exception:
         write_to_update_log(cur,
                             conn,
                             datetime.utcnow(),
                             'push new scene list to temp',
-                            10)
+                            10,
+                            exception=LOG.exception("PUSH FAILED"))
 
     # Update path_row from path_row_temp
     try:
@@ -194,12 +211,13 @@ def main():
                             'update path_row from path_row_temp',
                             5,
                             cur.rowcount)
-    except:
+    except Exception:
         write_to_update_log(cur,
                             conn,
                             datetime.utcnow(),
                             'update path_row from path_row_temp',
-                            10)
+                            10,
+                            exception=LOG.exception("UPDATE FAILED"))
 
     # Remove new scene list file
     try:
@@ -209,12 +227,13 @@ def main():
                             datetime.utcnow(),
                             'remove old scene list',
                             5)
-    except:
+    except Exception:
         write_to_update_log(cur,
                             conn,
                             datetime.utcnow(),
                             'remove old scene list',
-                            10)
+                            10,
+                            exception=LOG.exception("REMOVE FAILED"))
 
     # Check size of path_row table
     size_new = check_path_row_size(cur, conn)
