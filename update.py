@@ -20,6 +20,7 @@ TABLE = 'path_row'
 SEP = ','
 LOG = logging.getLogger('updater')
 
+
 def get_credentials():
     # Get credentials
     with open(CREDENTIALS, 'rb') as cred:
