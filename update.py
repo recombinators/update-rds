@@ -154,7 +154,8 @@ def main():
                             conn,
                             datetime.utcnow(),
                             'get new scene list',
-                            10)
+                            10,
+                            exception=LOG.exception("GET NEW SCENE FAILED"))
 
     # Delete path_row_temp
     try:
@@ -169,7 +170,8 @@ def main():
                             conn,
                             datetime.utcnow(),
                             'clean path_row_temp',
-                            10)
+                            10,
+                            exception=LOG.exception("DELETE FAILED"))
 
     # Push new scene list to temp
     try:
@@ -185,7 +187,8 @@ def main():
                             conn,
                             datetime.utcnow(),
                             'push new scene list to temp',
-                            10)
+                            10,
+                            exception=LOG.exception("PUSH FAILED"))
 
     # Update path_row from path_row_temp
     try:
@@ -201,7 +204,8 @@ def main():
                             conn,
                             datetime.utcnow(),
                             'update path_row from path_row_temp',
-                            10)
+                            10,
+                            exception=LOG.exception("UPDATE FAILED"))
 
     # Remove new scene list file
     try:
@@ -216,7 +220,8 @@ def main():
                             conn,
                             datetime.utcnow(),
                             'remove old scene list',
-                            10)
+                            10,
+                            exception=LOG.exception("REMOVE FAILED"))
 
     # Check size of path_row table
     size_new = check_path_row_size(cur, conn)
