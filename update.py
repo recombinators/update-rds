@@ -104,14 +104,15 @@ def delete_path_row_temp(cur, conn):
     conn.commit()
 
 
-def write_to_update_log(cur, conn, date_time, event, state, quantity=None):
+def write_to_update_log(cur, conn, date_time, event, state,
+                        quantity=None, exception=None):
     # Command
-    command = """INSERT INTO path_row_update_log (datetime, event, state, quantity)
-                 VALUES ('{date_time}', '{event}', '{state}', '{quantity}')
-                 """.format(date_time=date_time,
-                            event=event,
-                            state=state,
-                            quantity=quantity)
+    command = ("INSERT INTO path_row_update_log "
+               "(datetime, event, state, quantity, exception)\n"
+               "VALUES ('{date_time}', '{event}', '{state}', "
+               "'{quantity}', '{exception}')"
+               ).format(date_time=date_time, event=event,
+                        state=state, quantity=quantity, exception=exception)
     cur.execute(command)
 
     # Commit changes
