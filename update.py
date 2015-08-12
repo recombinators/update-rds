@@ -147,7 +147,7 @@ def main():
                             datetime.utcnow(),
                             'get new scene list',
                             5)
-    except:
+    except Exception:
         write_to_update_log(cur,
                             conn,
                             datetime.utcnow(),
@@ -162,7 +162,7 @@ def main():
                             datetime.utcnow(),
                             'clean path_row_temp',
                             5)
-    except:
+    except Exception:
         write_to_update_log(cur,
                             conn,
                             datetime.utcnow(),
@@ -178,7 +178,7 @@ def main():
                             'push new scene list to temp',
                             5,
                             cur.rowcount)
-    except:
+    except Exception:
         write_to_update_log(cur,
                             conn,
                             datetime.utcnow(),
@@ -194,7 +194,7 @@ def main():
                             'update path_row from path_row_temp',
                             5,
                             cur.rowcount)
-    except:
+    except Exception:
         write_to_update_log(cur,
                             conn,
                             datetime.utcnow(),
@@ -209,7 +209,7 @@ def main():
                             datetime.utcnow(),
                             'remove old scene list',
                             5)
-    except:
+    except Exception:
         write_to_update_log(cur,
                             conn,
                             datetime.utcnow(),
