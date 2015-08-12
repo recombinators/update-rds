@@ -141,6 +141,17 @@ def main():
                         5,
                         size_old)
 
+    # Temporary test of exception logger
+    try:
+        1 / 0  # This is always going to fail very hard.
+    except Exception:
+        write_to_update_log(cur,
+                            conn,
+                            datetime.utcnow(),
+                            'Divide by Zero Fail Test',
+                            10,
+                            exception=LOG.exception("DIVIDE BY ZERO FAIL!"))
+
     # Get new scene list
     try:
         get_new_scene_list(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
