@@ -4,6 +4,7 @@ import gzip
 import logging
 import os
 import psycopg2
+import StringIO
 
 # Constants
 FILE_PATH = os.path.dirname(os.path.realpath(__file__))
@@ -22,7 +23,8 @@ LOG = logging.getLogger()
 
 # set logggin level and handler
 LOG.setLevel(logging.WARN)
-LOG.addHandler(logging.StreamHandler())
+output = StringIO.StringIO()
+LOG.addHandler(logging.StreamHandler(output))
 
 
 def get_credentials():
