@@ -20,8 +20,9 @@ TABLE = 'path_row'
 SEP = ','
 LOG = logging.getLogger()
 
-# set logggin level
+# set logggin level and handler
 LOG.setLevel(logging.WARN)
+LOG.addHandler(logging.StreamHandler())
 
 
 def get_credentials():
