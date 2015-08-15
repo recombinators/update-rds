@@ -132,6 +132,11 @@ def close_db_connection(cur, conn):
     conn.close()
 
 
+def collect_exception(exception):
+    exception_text = output.read()
+    return exception_text
+
+
 def main():
     # Get credentials
     AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, DATABASE_URL = get_credentials()
