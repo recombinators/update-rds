@@ -55,7 +55,7 @@ docs/_build/
 
 # PyBuilder
 target/
-credentials
+credentials.*
 diff.csv
 up_to_date_scene_list.csv
 start_file
