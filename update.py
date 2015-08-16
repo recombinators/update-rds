@@ -113,13 +113,22 @@ def delete_path_row_temp(cur, conn):
 
 def write_to_update_log(cur, conn, date_time, event, state,
                         quantity=None, exception=None):
+
+    # Prepare the error message if there is one. Probably not the best
+    # way to do this, but it works. Truncate clears the log for next error
+    # message.
+    output.seek(0)
+    error = output.read()
+    output.truncate(0)
+    output.seek(0)  # python3 compatibility
+
     # Command
     command = ("INSERT INTO path_row_update_log "
                "(datetime, event, state, quantity, exception)\n"
                "VALUES ('{date_time}', '{event}', '{state}', "
                "'{quantity}', '{exception}')"
                ).format(date_time=date_time, event=event,
-                        state=state, quantity=quantity, exception=exception)
+                        state=state, quantity=quantity, exception=error)
     cur.execute(command)
 
     # Commit changes
